@@ -1,0 +1,62 @@
+#!/bin/bash
+
+if [ "$1" = "--add" -o "$1" = "-a" ]; then
+    add=1
+    print=0
+    shift 1
+elif [ "$1" = "--print" -o "$1" = "-p" ]; then
+    add=0
+    print=1
+    shift 1
+else
+    add=0
+    print=1
+fi
+
+usage() {
+  cat << EOF
+TOTP: [-a] or [-p (default)] [AUTH URI] [nickname:key(base32))]
+
+Options:
+  -a, --add           add the following accounts specified
+  -p, --print         print the specified nickname TOTPs
+
+Examples:
+  TOTP -p microsoft_school
+  TOTP -a otpauth-migration://offline... microsoft:JBSWY3DPEHPK3PXP
+
+EOF
+  exit 1
+}
+if [[ "$print" -eq 1 ]]; then
+    if [ ! -f ~/.TOTP_codes1591995 ]; then #check if file with account information already exists for current user
+        : > ~/.TOTP_codes1591995
+        chmod 600 ~/.TOTP_codes1591995
+    fi
+
+    if [ ! -z "$1" ]; then #print TOTPs of only the accounts specified by the input
+        while [ ! -z "$1" ]; do
+            line=$(grep "$1" ~/.TOTP_codes1591995 | head -n 1)
+            accounts=(${line//:/ })
+            printf "%s:%s\n" "${accounts[0]}" "$(./totp_gen.sh ${accounts[1]})"
+            shift 1
+        done
+    else
+        while read -r line; do # print all account with TOTP if no account is specified
+            accounts=(${line//:/ })
+            printf "%s:%s\n" "${accounts[0]}" "$(./totp_gen.sh ${accounts[1]})"
+        done < ~/.TOTP_codes1591995
+    fi
+elif [[ "$add" -eq 1 ]]; then
+    while [ ! -z "$1" ]; do
+        case "$1" in
+            *"otpauth-migration://"*) echo "TODO" ;; #need to add google URI parser
+            *) echo $1 >> ~/.TOTP_codes1591995 ;;
+        esac
+        shift 1
+    done
+fi
+    
+
+    
+
