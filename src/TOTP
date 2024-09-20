@@ -8,6 +8,8 @@ elif [ "$1" = "--print" -o "$1" = "-p" ]; then
     add=0
     print=1
     shift 1
+elif [ "$1" = "--help" -o "$1" = "-h" ]; then
+    help=1
 else
     add=0
     print=1
@@ -28,6 +30,11 @@ Examples:
 EOF
   exit 1
 }
+
+if [[ "$help" = 1 ]]; then
+    usage
+fi
+
 if [[ "$print" -eq 1 ]]; then
     if [ ! -f ~/.TOTP_codes1591995 ]; then #check if file with account information already exists for current user
         : > ~/.TOTP_codes1591995
@@ -57,6 +64,3 @@ elif [[ "$add" -eq 1 ]]; then
     done
 fi
     
-
-    
-
